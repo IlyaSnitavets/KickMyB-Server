@@ -6,6 +6,7 @@ import org.kickmyb.transfer.AddTaskRequest;
 import org.kickmyb.transfer.HomeItemResponse;
 import org.kickmyb.transfer.TaskDetailResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -33,12 +34,12 @@ public class ControllerTask {
         return "";
     }
     @DeleteMapping("/api/task/{id}")
-    public @ResponseBody String delete(@PathVariable Long id) throws IllegalAccessException {
+    public ResponseEntity<Void> delete(@PathVariable Long id) throws IllegalAccessException {
         System.out.println("KICKB SERVER : Delete task " + id);
         ConfigHTTP.attenteArticifielle();
         MUser user = currentUser();
         serviceTask.deleteTask(id, user);
-        return "";
+        return ResponseEntity.noContent().build(); // HTTP 204 No Content
     }
 
     @GetMapping(value = "/api/progress/{taskID}/{value}", produces = "text/plain")
