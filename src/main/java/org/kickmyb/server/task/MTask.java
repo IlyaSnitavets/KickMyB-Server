@@ -1,6 +1,7 @@
 package org.kickmyb.server.task;
 
 import jakarta.persistence.*;
+import org.kickmyb.server.account.MUser;
 import org.kickmyb.server.photo.MPhoto;
 
 import java.util.ArrayList;
@@ -18,7 +19,8 @@ public class MTask {
     public Long id;
     public Date creationDate;
     public Date deadline;
-
+    @ManyToOne
+    public MUser user;
 
     @Convert(converter = AttributeEncryptor.class)  // TODO exemple stupide, servirait plutôt pour NAS ou numero carte crédit
     public String name;

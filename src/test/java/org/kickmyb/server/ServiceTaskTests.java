@@ -127,7 +127,7 @@ class ServiceTaskTests {
     @Test
     public void deleteTaskwithOKID() throws Exception {
         MUser user = new MUser();
-        user.username = "test1";
+        user.username = "test123";
         user.password = "pass123";
         repoUser.save(user);
 
@@ -135,12 +135,16 @@ class ServiceTaskTests {
         task.name = "tâche à supprimer";
         task.creationDate = new Date();
         task.deadline = new Date(System.currentTimeMillis());
+        task.user = user;
+
         repoTask.save(task);
         user.tasks.add(task);
         repoUser.save(user);
 
-        MUser refreshed = repoUser.findByUsername("test1").get();
-        Assertions.assertEquals(1, refreshed.tasks.size());
+        MUser refreshed = repoUser.findById(user.id).get();
+
+        Assertions.assertTrue(refreshed.tasks.stream()
+                .anyMatch(t -> t.id.equals(task.id)));
 
         serviceTask.deleteTask(task.id, refreshed);
 

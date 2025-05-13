@@ -32,10 +32,13 @@ public class ServiceTaskImpl implements ServiceTask {
     @Override
     public void deleteTask(Long taskId, MUser user) throws IllegalAccessException {
         MTask task = repo.findById(taskId).orElseThrow();
-        if (!user.tasks.contains(task)) {
+        boolean isOwner = user.tasks.stream()
+                .anyMatch(t -> t.id.equals(task.id));
+
+        if (!isOwner) {
             throw new IllegalAccessException("User does not own this task.");
         }
-        user.tasks.remove(task);
+        user.tasks.removeIf(t -> t.id.equals(task.id));
         repoUser.save(user);
         repo.delete(task);
     }
@@ -75,6 +78,7 @@ public class ServiceTaskImpl implements ServiceTask {
         }
         // tout est beau, on crée
         MTask t = new MTask();
+        t.user = user;
         t.name = req.name;
         t.creationDate = DateTime.now().toDate();
         if (req.deadline == null) {
