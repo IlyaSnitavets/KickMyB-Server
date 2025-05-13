@@ -92,12 +92,19 @@ public class ServiceTaskImpl implements ServiceTask {
     }
 
     @Override
-    public void updateProgress(long taskID, int value) {
-        MTask element = repo.findById(taskID).get();
-        // TODO validate value is between 0 and 100
-        MProgressEvent pe= new MProgressEvent();
+    public void updateProgress(long taskID, int value, MUser user) throws IllegalAccessException {
+        MTask element = repo.findById(taskID).orElseThrow();
+        if (!element.user.id.equals(user.id)) {
+            throw new IllegalAccessException("User does not own this task.");
+        }
+
+        if (value < 0 || value > 100) {
+            throw new IllegalArgumentException("Invalid progress value.");
+        }
+
+        MProgressEvent pe = new MProgressEvent();
         pe.resultPercentage = value;
-        pe.completed = value ==100;
+        pe.completed = value == 100;
         pe.timestamp = DateTime.now().toDate();
         repoProgressEvent.save(pe);
         element.events.add(pe);
