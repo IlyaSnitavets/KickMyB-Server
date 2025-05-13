@@ -1,9 +1,12 @@
 package org.kickmyb.server;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.kickmyb.server.account.MUser;
 import org.kickmyb.server.account.MUserRepository;
+import org.kickmyb.server.task.MTask;
+import org.kickmyb.server.task.MTaskRepository;
 import org.kickmyb.server.task.ServiceTask;
 import org.kickmyb.transfer.AddTaskRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +19,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Date;
+import java.util.Optional;
 
 import static org.assertj.core.api.Fail.fail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -31,6 +35,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 //@ActiveProfiles("test")
 class ServiceTaskTests {
 
+
+    @Autowired
+    MUserRepository repoUser;
+
+    @Autowired
+    MTaskRepository repoTask;
     @Autowired
     private MUserRepository userRepository;
     @Autowired
@@ -111,5 +121,66 @@ class ServiceTaskTests {
         } catch (Exception e) {
             assertEquals(ServiceTask.Existing.class, e.getClass());
         }
+    }
+
+
+    @Test
+    public void deleteTaskwithOKID() throws Exception {
+        MUser user = new MUser();
+        user.username = "test1";
+        user.password = "pass123";
+        repoUser.save(user);
+
+        MTask task = new MTask();
+        task.name = "tâche à supprimer";
+        task.creationDate = new Date();
+        task.deadline = new Date(System.currentTimeMillis());
+        repoTask.save(task);
+        user.tasks.add(task);
+        repoUser.save(user);
+
+        MUser refreshed = repoUser.findByUsername("test1").get();
+        Assertions.assertEquals(1, refreshed.tasks.size());
+
+        serviceTask.deleteTask(task.id, refreshed);
+
+        Optional<MTask> deleted = repoTask.findById(task.id);
+        Assertions.assertTrue(deleted.isEmpty());
+    }
+
+    @Test
+    public void deleteTask_withInvalidId_shouldThrow() {
+        MUser user = new MUser();
+        user.username = "test2";
+        user.password = "pass123";
+        repoUser.save(user);
+
+        Assertions.assertThrows(Exception.class, () -> {
+            serviceTask.deleteTask(9999L, user);
+        });
+    }
+    @Test
+    public void deleteTask_byAnotherUser_shouldThrow() {
+        MUser alice = new MUser();
+        alice.username = "alice";
+        alice.password = "pass";
+        repoUser.save(alice);
+
+        MTask task = new MTask();
+        task.name = "tâche d'Alice";
+        task.creationDate = new Date();
+        task.deadline = new Date(System.currentTimeMillis());
+        repoTask.save(task);
+        alice.tasks.add(task);
+        repoUser.save(alice);
+
+        MUser bob = new MUser();
+        bob.username = "bob";
+        bob.password = "pass";
+        repoUser.save(bob);
+
+        Assertions.assertThrows(IllegalAccessException.class, () -> {
+            serviceTask.deleteTask(task.id, bob);
+        });
     }
 }

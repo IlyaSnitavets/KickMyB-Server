@@ -29,7 +29,16 @@ public class ServiceTaskImpl implements ServiceTask {
         // TODO si end est avant start c'est tout cassé.
         return Math.max((int) percentage, 0 );
     }
-
+    @Override
+    public void deleteTask(Long taskId, MUser user) throws IllegalAccessException {
+        MTask task = repo.findById(taskId).orElseThrow();
+        if (!user.tasks.contains(task)) {
+            throw new IllegalAccessException("User does not own this task.");
+        }
+        user.tasks.remove(task);
+        repoUser.save(user);
+        repo.delete(task);
+    }
     @Override
     public TaskDetailResponse detail(Long id, MUser user) {
         //MTask element = user.tasks.stream().filter(elt -> elt.id == id).findFirst().get();

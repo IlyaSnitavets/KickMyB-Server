@@ -32,6 +32,14 @@ public class ControllerTask {
         serviceTask.addOne(request, user);
         return "";
     }
+    @DeleteMapping("/api/task/{id}")
+    public @ResponseBody String delete(@PathVariable Long id) throws IllegalAccessException {
+        System.out.println("KICKB SERVER : Delete task " + id);
+        ConfigHTTP.attenteArticifielle();
+        MUser user = currentUser();
+        serviceTask.deleteTask(id, user);
+        return "";
+    }
 
     @GetMapping(value = "/api/progress/{taskID}/{value}", produces = "text/plain")
     public @ResponseBody String updateProgress(@PathVariable long taskID, @PathVariable int value) {
